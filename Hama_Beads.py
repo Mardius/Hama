@@ -136,30 +136,24 @@ def createImage(op,res):
 			r,g,b = rgb_im.getpixel(xy)
 			result = bestMatch(r,g,b)
 			pixels[x,y] = (result[1],result[2],result[3])
-			#print("R1 : %d | G1 : %d | B1 : %d" % (r,g,b))
-			#print("R2 : %d | G2 : %d | B2 : %d" % (result[1],result[2],result[3]))
-	#im_res = ImageOps.invert(im_res)  
+
+	
 	im_res.save(res, 'PNG') 
-    #im_res.save(res)
-    #fin = time.time()
-	#print("Image ",res," est crée en ",fin-debut," secondes")
+  
     
-def convertToPNG():
-    img = Image.open(op)#image path and name
-    img = img.convert("RGB")
-    datas = img.getdata()
-    newData = []
-    for item in datas:
-        if item[0] == 255 and item[1] == 255 and item[2] == 255:
-            newData.append((255, 255, 255, 0))
-        else:
-            newData.append(item)
-    img.putdata(newData)
-    img.save(op, "PNG")#converted Image name
-    print('Done')
     
 def ChangeColor(op):
-    img = Image.open(op)#image path and name    
+    img = Image.open(op)#image path and name   
+    RangoPixelMayor = 29
+    if img.size[0] >= img.size[1]: #↔ Con este If forzamos el tamaño del rango al mayor siempre el vector más alto es el limitado y el otro se relaciona.
+        wpercent = (RangoPixelMayor/float(img.size[0]))
+        hsize = int((float(img.size[1])*float(wpercent)))
+        img = img.resize((RangoPixelMayor,hsize))
+    else:
+        wpercent = (RangoPixelMayor/float(img.size[1]))
+        bsize = int((float(img.size[0])*float(wpercent)))
+        img = img.resize((bsize,RangoPixelMayor))
+    
     img = img.convert("RGBA")
     datas = img.getdata()
     
@@ -251,16 +245,12 @@ def importXML(filename):
 		r_chart = int(hama.getElementsByTagName("R")[0].childNodes[0].nodeValue)
 		g_chart = int(hama.getElementsByTagName("G")[0].childNodes[0].nodeValue)
 		b_chart = int(hama.getElementsByTagName("B")[0].childNodes[0].nodeValue)
-		#print("CODE : %s | R : %d | G : %d | B : %d" % (code,r_chart,g_chart,b_chart))
 
 		tempC1 = RGBtoXYZ(r_chart,g_chart,b_chart)
 		tempC2 = XYZtoCIEL(tempC1[0],tempC1[1],tempC1[2])
 
 		bead = Hama(code,r_chart,g_chart,b_chart)
 		bead2 = Hama(code,tempC2[0],tempC2[1],tempC2[2])
-
-		"""print("CODE : %s | R : %d | G : %d | B : %d" % (bead.code,bead.red,bead.green,bead.blue))
-		print("L : ",bead2.red," | a : ",bead2.green," | b : ",bead2.blue)"""
 
 		colorchartRGB.append(bead)
 		colorchartLab.append(bead2)
@@ -269,7 +259,7 @@ def importXML(filename):
 	fin = time.time()
 	
 
-folderName = 'C:/Users/Mardius/Desktop/Pokemon Hama'
+folderName = 'C:\Proyectos\Hama Beads\Imagenes_Hama'
 filePaths = glob.glob(folderName + "/*.png") #search for all png images in the folder    
 for Pokemon in filePaths:
     x = Pokemon.split(folderName)  
@@ -277,11 +267,9 @@ for Pokemon in filePaths:
     nombre_pokemon= nombre_pokemon.replace ("\\","")
     op = (Pokemon)
     #'res = (Pokemon + "_Res.png" % (s))
-    resbead = ("images/" + nombre_pokemon +"_ResBead.png")
+    resbead = ("C:\Proyectos\Hama Beads\Imagenes_Generadas/" + nombre_pokemon +"_ResBead.png")
 
     importXML('colorchart2.xml')
     ChangeColor(op)
-#convertToPNG()
-#createImage(op,res)
 
     createImageBeads(op,resbead)
