@@ -1,5 +1,5 @@
 from xml.dom import minidom
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw,ImageFont
 import random
 import os
 import time
@@ -142,41 +142,49 @@ def createImage(op,res):
   
     
     
-def ChangeColor(op):
-    img = Image.open(op)#image path and name   
-    RangoPixelMayor = 29
-    if img.size[0] >= img.size[1]: #↔ Con este If forzamos el tamaño del rango al mayor siempre el vector más alto es el limitado y el otro se relaciona.
-        wpercent = (RangoPixelMayor/float(img.size[0]))
-        hsize = int((float(img.size[1])*float(wpercent)))
-        img = img.resize((RangoPixelMayor,hsize))
-    else:
-        wpercent = (RangoPixelMayor/float(img.size[1]))
-        bsize = int((float(img.size[0])*float(wpercent)))
-        img = img.resize((bsize,RangoPixelMayor))
+def ChangeColor(op, resbead):
+    bucle = 0
+    img = Image.open(op)#image path and name 
+    if img.size[0] != 100000 and img.size[1] != 100000:
+        RangoPixelMayor = 29
+        for bucle in range(3):
+            img = Image.open(op)#image path and name 
+            RangoPixelMayor = 29*(bucle+1)
+            if img.size[0] >= img.size[1]: #↔ Con este If forzamos el tamaño del rango al mayor siempre el vector más alto es el limitado y el otro se relaciona.
+                wpercent = (RangoPixelMayor/float(img.size[0]))
+                hsize = int((float(img.size[1])*float(wpercent)))
+                img = img.resize((RangoPixelMayor,hsize))
+                YAncho = 0
+                YAlto = int((RangoPixelMayor - hsize)/2)
+            else:
+                wpercent = (RangoPixelMayor/float(img.size[1]))
+                bsize = int((float(img.size[0])*float(wpercent)))
+                img = img.resize((bsize,RangoPixelMayor))
+                YAncho = int((RangoPixelMayor - bsize)/2)
+                YAlto = 0
+            
+            img = img.convert("RGBA")
+            text_img = Image.new('RGBA', (RangoPixelMayor,RangoPixelMayor), (0, 0, 0, 0))
+            text_img.paste(img, (YAncho,YAlto), mask=img)
+            img = text_img
+            datas = img.getdata()
+        
+            newData = []
+            for item in datas:
+                if item[0] == 0 and item[1] == 0 and item[2] == 0 and item[3] == 0:
+                    newData.append((255, 255, 255, 0))
+                else:
+                    newData.append(item)
+            
+            img.putdata(newData)
+            #img.save(op, "PNG")
+            createImageBeads(img,resbead,bucle)
     
-    img = img.convert("RGBA")
-    datas = img.getdata()
-    
-    newData = []
-    for item in datas:
-        if item[0] == 0 and item[1] == 0 and item[2] == 0 and item[3] == 0:
-            newData.append((255, 255, 255, 0))
-        else:
-            newData.append(item)
-    
-    img.putdata(newData)
-    
-    img.save(op, "PNG")
-    
-    
-    
-    
-    
-def createImageBeads(op,resbead):
+def createImageBeads(op,resbead,bucle):
 
 	debut = time.time()
 
-	im = Image.open(op)
+	im = op
 	rgb_im = im.convert('RGB')
 	width,height = im.size
 
@@ -219,10 +227,33 @@ def createImageBeads(op,resbead):
 
 	del draw
     
-	im_res.save(resbead, 'PNG')
 	fin = time.time()
+    #Escribe_Texto(resbead)
 	print("La Imagen",resbead," Ha sido creado en ",fin-debut," Segundos")
 
+	Escribe_Texto(im_res,bucle)
+
+
+
+def Escribe_Texto(im_res,bucle):
+    tamaño = 32
+    #♥text_img = Image.new('RGBA', (300,50), (255, 255, 255, 0))
+    #img.paste(text_img, (0,img.size[1]- tamaño -2), mask=text_img)
+    draw = ImageDraw.Draw(im_res)
+    if bucle == 0:
+        font = ImageFont.truetype("C:/Proyectos/Hama Beads/Fuentes/Pokemon Solid.ttf", tamaño)
+        draw.text((0, im_res.size[1]- tamaño -3),"DiYouVerse.com",(0,0,0), font=font)
+        im_res.save("C:/Proyectos/Hama Beads/Imagenes_Generadas/Pequeño/"+ nombre_pokemon + "_Pequeño.png", 'PNG')
+    if bucle == 1:
+        tamaño = tamaño *2
+        font = ImageFont.truetype("C:/Proyectos/Hama Beads/Fuentes/Pokemon Solid.ttf", tamaño)
+        draw.text((0, im_res.size[1]- tamaño -3),"DiYouVerse.com",(0,0,0), font=font)
+        im_res.save("C:/Proyectos/Hama Beads/Imagenes_Generadas/Mediano/"+ nombre_pokemon + "_Mediano.png", 'PNG')
+    if bucle == 2:
+        tamaño = tamaño *3
+        font = ImageFont.truetype("C:/Proyectos/Hama Beads/Fuentes/Pokemon Solid.ttf", tamaño)
+        draw.text((0, im_res.size[1]- tamaño -3),"DiYouVerse.com",(0,0,0), font=font)
+        im_res.save("C:/Proyectos/Hama Beads/Imagenes_Generadas/Grande/"+ nombre_pokemon + "_Grande.png", 'PNG')
 
 def importXML(filename):
 
@@ -270,6 +301,7 @@ for Pokemon in filePaths:
     resbead = ("C:\Proyectos\Hama Beads\Imagenes_Generadas/" + nombre_pokemon +"_ResBead.png")
 
     importXML('colorchart2.xml')
-    ChangeColor(op)
+    ChangeColor(op,resbead)
 
-    createImageBeads(op,resbead)
+    #createImageBeads(op,resbead)
+
